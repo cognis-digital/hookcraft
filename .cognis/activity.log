@@ -1,1 +1,2 @@
 2024-06-10T17:57:27  perf(fixtures): handle CRLF line endings
+2024-07-01T12:14:34  ci(report): support stdin as a source
