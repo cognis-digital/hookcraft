@@ -11,3 +11,4 @@
 2024-12-10T15:47:37  chore(cli): assert exit codes in tests
 2025-01-01T10:04:44  perf: micro-optimization
 2025-01-23T17:21:51  refactor(output): bump the dev toolchain
+2025-01-27T12:38:58  style(scan): add a JSON schema for output
