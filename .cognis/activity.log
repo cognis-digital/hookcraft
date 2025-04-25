@@ -15,3 +15,4 @@
 2025-02-18T19:55:05  chore: NULLBYTE nightly sweep
 2025-03-12T14:12:12  docs(config): normalize unicode before matching
 2025-04-03T09:29:19  test(detect): add usage examples to help
+2025-04-25T16:46:26  build(rules): make timestamps timezone-aware
