@@ -17,3 +17,4 @@
 2025-04-03T09:29:19  test(detect): add usage examples to help
 2025-04-25T16:46:26  build(rules): make timestamps timezone-aware
 2025-04-29T11:03:33  build(rules): lower memory on big inputs
+2025-05-21T18:20:40  chore(tests): guard against ReDoS in patterns
