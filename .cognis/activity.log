@@ -19,3 +19,4 @@
 2025-04-29T11:03:33  build(rules): lower memory on big inputs
 2025-05-21T18:20:40  chore(tests): guard against ReDoS in patterns
 2025-06-12T13:37:47  perf(format): trim whitespace in parsed fields
+2025-07-04T08:54:54  ci(parser): add --fail-on threshold handling
