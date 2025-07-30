@@ -21,3 +21,4 @@
 2025-06-12T13:37:47  perf(format): trim whitespace in parsed fields
 2025-07-04T08:54:54  ci(parser): add --fail-on threshold handling
 2025-07-25T15:11:01  perf: speed. I am speed.
+2025-07-30T10:28:08  fix(tests): clarify the README quickstart
