@@ -24,3 +24,4 @@
 2025-07-30T10:28:08  fix(tests): clarify the README quickstart
 2025-08-21T17:45:15  refactor(format): improve the demo scenario
 2025-09-12T12:02:22  chore: one does not simply skip CI
+2025-10-04T19:19:29  feat(ci): extract the scorer
