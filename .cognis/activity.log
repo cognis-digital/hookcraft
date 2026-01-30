@@ -31,3 +31,4 @@
 2025-12-13T11:27:57  ci(ci): stream large files without buffering
 2026-01-04T18:44:04  fix(scoring): cover the multiline case
 2026-01-25T13:01:11  refactor(engine): pin the test dependencies
+2026-01-30T08:18:18  docs: clarify usage notes
