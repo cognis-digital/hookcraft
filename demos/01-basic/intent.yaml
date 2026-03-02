@@ -1,0 +1,38 @@
+# HOOKCRAFT intent — example for a hypothetical Android app under test.
+#
+# Each entry under `hooks` describes WHAT to instrument; HOOKCRAFT turns it
+# into a runnable Frida JS agent. Run the generator with:
+#
+#   python -m hookcraft generate demos/01-basic/intent.yaml -o hooks.js
+#
+target: com.example.bank
+platform: android
+description: Trace crypto + network surface of the example banking app.
+
+hooks:
+  # Intercept a Java method that builds the auth token.
+  - name: build_auth_token
+    kind: java_method
+    class: com.example.bank.security.TokenFactory
+    method: build
+    overload: ["java.lang.String", "int"]
+    log_args: true
+    log_return: true
+    backtrace: true
+
+  # Watch a native libssl export used for cert pinning checks.
+  - name: ssl_verify
+    kind: native_export
+    module: libssl.so
+    symbol: SSL_CTX_set_verify
+    log_args: true
+    log_return: true
+
+  # Inferred kind (symbol present) — module omitted, resolves globally.
+  - name: strstr_probe
+    symbol: strstr
+
+  # Wait for a plugin module to load, then report its base address.
+  - name: native_plugin_loaded
+    kind: module_init
+    module: libpayment.so
