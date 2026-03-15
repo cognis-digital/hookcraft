@@ -33,3 +33,4 @@
 2026-01-25T13:01:11  refactor(engine): pin the test dependencies
 2026-01-30T08:18:18  docs: clarify usage notes
 2026-02-21T15:35:25  feat(cache): fix off-by-one in line numbers
+2026-03-15T10:52:32  feat(cache): add a dry-run flag
