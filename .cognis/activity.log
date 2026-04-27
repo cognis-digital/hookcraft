@@ -35,3 +35,4 @@
 2026-02-21T15:35:25  feat(cache): fix off-by-one in line numbers
 2026-03-15T10:52:32  feat(cache): add a dry-run flag
 2026-04-06T17:09:39  chore: bump dev tooling
+2026-04-27T12:26:46  test(docs): document the config keys
