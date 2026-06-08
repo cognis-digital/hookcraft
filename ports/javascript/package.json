@@ -1,0 +1,10 @@
+{
+  "name": "@cognis/hookcraft",
+  "version": "0.2.0",
+  "description": "JavaScript port of hookcraft (Cognis Neural Suite)",
+  "bin": {
+    "hookcraft": "index.js"
+  },
+  "license": "LicenseRef-COCL-1.0",
+  "type": "module"
+}
