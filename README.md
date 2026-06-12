@@ -16,7 +16,7 @@
 </div>
 
 ```bash
-pip install cognis-hookcraft
+pip install "git+https://github.com/cognis-digital/hookcraft.git"
 hookcraft scan .            # → prioritized findings in seconds
 ```
 
@@ -51,7 +51,7 @@ Frida is powerful but everyone copy-pastes the same gist scripts; hookcraft is a
 ## Quick start
 
 ```bash
-pip install cognis-hookcraft
+pip install "git+https://github.com/cognis-digital/hookcraft.git"
 hookcraft --version
 hookcraft scan .                       # scan current project
 hookcraft scan . --format json         # machine-readable
