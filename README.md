@@ -22,26 +22,37 @@ hookcraft scan .            # → prioritized findings in seconds
 
 ## Usage — step by step
 
-`hookcraft` renders Frida instrumentation scripts from a declarative YAML
-intent, and lints intents. Two subcommands: `generate` and `lint`.
+> Authorized mobile-app security testing only.
 
-```bash
-# 1. Install
-pip install -e .
+1. **Install:**
 
-# 2. Lint an intent before you render it (- reads from stdin)
-hookcraft lint intent.yaml
+   ```bash
+   pip install hookcraft
+   ```
 
-# 3. Generate the Frida JS agent from the intent
-hookcraft generate intent.yaml -o agent.js
+2. **Generate a Frida agent** from a YAML intent — the script is printed to stdout:
 
-# 4. Read results as JSON, or relax strict mode if the lint blocks generation
-hookcraft generate intent.yaml --no-strict --format json > hookcraft.json
+   ```bash
+   hookcraft generate intent.yaml
+   ```
 
-# 5. Automation — lint as a gate, then build the agent in CI
-hookcraft lint intent.yaml && hookcraft generate intent.yaml -o build/agent.js
-```
+3. **Write the agent to a file** instead of stdout:
 
+   ```bash
+   hookcraft generate intent.yaml -o hooks.js
+   ```
+
+4. **Lint an intent** before generating — validates the intent and reports findings (use in CI):
+
+   ```bash
+   hookcraft lint intent.yaml --format json | jq '.findings'
+   ```
+
+5. **Machine-readable build** — JSON carries the script, hook count, and findings; the exit code is non-zero on error-level findings (or pass `--no-strict` to generate anyway):
+
+   ```bash
+   hookcraft generate intent.yaml --format json | jq '.ok'
+   ```
 
 ## Contents
 
