@@ -20,6 +20,12 @@ pip install "git+https://github.com/cognis-digital/hookcraft.git"
 hookcraft scan .            # → prioritized findings in seconds
 ```
 
+<!-- cognis:layman:start -->
+## What is this?
+
+hookcraft turns a simple YAML description of what you want to monitor inside an app into a ready-to-run Frida script — no hand-coding required. You write a short file saying "watch this function on this process," and hookcraft generates the JavaScript that Frida injects to log calls, arguments, and return values. It works with Android, iOS, Linux, macOS, and Windows targets, covering Java methods, Objective-C selectors, native C exports, and raw memory addresses. Security researchers and mobile developers use it to understand what an app is doing at runtime without needing to modify or recompile it.
+<!-- cognis:layman:end -->
+
 ## Contents
 
 - [Why hookcraft?](#why) · [Features](#features) · [Quick start](#quick-start) · [Example](#example) · [Architecture](#architecture) · [AI stack](#ai-stack) · [How it compares](#how-it-compares) · [Integrations](#integrations) · [Install anywhere](#install-anywhere) · [Related](#related) · [Contributing](#contributing)
@@ -48,6 +54,42 @@ Frida is powerful but everyone copy-pastes the same gist scripts; hookcraft is a
 <div align="right"><a href="#top">↑ back to top</a></div>
 
 <a name="quick-start"></a>
+<!-- cognis:install:start -->
+## Install
+
+`hookcraft` is source-available (not published to PyPI) — every method below installs
+straight from GitHub. Pick whichever you prefer; the one-line scripts auto-detect
+the best tool available on your machine.
+
+**One-liner (Linux / macOS):**
+```sh
+curl -fsSL https://raw.githubusercontent.com/cognis-digital/hookcraft/HEAD/install.sh | sh
+```
+
+**One-liner (Windows PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/cognis-digital/hookcraft/HEAD/install.ps1 | iex
+```
+
+**Or install manually — any one of:**
+```sh
+pipx install "git+https://github.com/cognis-digital/hookcraft.git"     # isolated (recommended)
+uv tool install "git+https://github.com/cognis-digital/hookcraft.git"  # uv
+pip install "git+https://github.com/cognis-digital/hookcraft.git"      # pip
+```
+
+**From source:**
+```sh
+git clone https://github.com/cognis-digital/hookcraft.git
+cd hookcraft && pip install .
+```
+
+Then run:
+```sh
+hookcraft --help
+```
+<!-- cognis:install:end -->
+
 ## Quick start
 
 ```bash
