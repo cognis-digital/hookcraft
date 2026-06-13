@@ -20,6 +20,29 @@ pip install cognis-hookcraft
 hookcraft scan .            # → prioritized findings in seconds
 ```
 
+## Usage — step by step
+
+`hookcraft` renders Frida instrumentation scripts from a declarative YAML
+intent, and lints intents. Two subcommands: `generate` and `lint`.
+
+```bash
+# 1. Install
+pip install -e .
+
+# 2. Lint an intent before you render it (- reads from stdin)
+hookcraft lint intent.yaml
+
+# 3. Generate the Frida JS agent from the intent
+hookcraft generate intent.yaml -o agent.js
+
+# 4. Read results as JSON, or relax strict mode if the lint blocks generation
+hookcraft generate intent.yaml --no-strict --format json > hookcraft.json
+
+# 5. Automation — lint as a gate, then build the agent in CI
+hookcraft lint intent.yaml && hookcraft generate intent.yaml -o build/agent.js
+```
+
+
 ## Contents
 
 - [Why hookcraft?](#why) · [Features](#features) · [Quick start](#quick-start) · [Example](#example) · [Architecture](#architecture) · [AI stack](#ai-stack) · [How it compares](#how-it-compares) · [Integrations](#integrations) · [Install anywhere](#install-anywhere) · [Related](#related) · [Contributing](#contributing)
