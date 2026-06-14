@@ -73,7 +73,10 @@ def test_parse_demo_intent():
     assert intent.platform == "android"
     assert len(intent.hooks) == 4
     names = {h.name for h in intent.hooks}
-    assert {"build_auth_token", "ssl_verify", "strstr_probe", "native_plugin_loaded"} == names
+    expected = {
+        "build_auth_token", "ssl_verify", "strstr_probe", "native_plugin_loaded"
+    }
+    assert expected == names
 
 
 def test_kind_inference():

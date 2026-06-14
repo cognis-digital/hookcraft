@@ -34,10 +34,35 @@ examples:
 
 
 def _read(path: str) -> str:
+    """Read text from *path* or stdin ('-'), with clear errors on failure."""
     if path == "-":
         return sys.stdin.read()
-    with open(path, "r", encoding="utf-8") as fh:
-        return fh.read()
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return fh.read()
+    except FileNotFoundError:
+        raise HookcraftError(f"file not found: '{path}'")
+    except IsADirectoryError:
+        raise HookcraftError(f"'{path}' is a directory, not a file")
+    except PermissionError:
+        raise HookcraftError(f"permission denied reading '{path}'")
+    except UnicodeDecodeError as exc:
+        raise HookcraftError(
+            f"'{path}' is not valid UTF-8 ({exc})"
+        )
+
+
+def _write(path: str, content: str) -> None:
+    """Write *content* to *path*, with clear errors on failure."""
+    try:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(content)
+    except IsADirectoryError:
+        raise HookcraftError(f"'{path}' is a directory, cannot write")
+    except PermissionError:
+        raise HookcraftError(f"permission denied writing '{path}'")
+    except OSError as exc:
+        raise HookcraftError(f"I/O error writing '{path}': {exc}")
 
 
 def _findings_table(findings) -> str:
@@ -51,7 +76,15 @@ def _findings_table(findings) -> str:
 
 
 def _cmd_generate(args) -> int:
-    text = _read(args.intent)
+    try:
+        text = _read(args.intent)
+    except HookcraftError as exc:
+        if args.format == "json":
+            print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+        else:
+            print(f"error: {exc}", file=sys.stderr)
+        return 2
+
     try:
         if args.no_strict:
             data = parse_yaml(text)
@@ -67,9 +100,12 @@ def _cmd_generate(args) -> int:
             print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    if args.output and args.format != "json":
-        with open(args.output, "w", encoding="utf-8") as fh:
-            fh.write(script)
+    try:
+        if args.output and args.format != "json":
+            _write(args.output, script)
+    except HookcraftError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
     if args.format == "json":
         out = {
@@ -81,15 +117,21 @@ def _cmd_generate(args) -> int:
             "script": script,
         }
         if args.output:
-            with open(args.output, "w", encoding="utf-8") as fh:
-                fh.write(script)
+            try:
+                _write(args.output, script)
+            except HookcraftError as exc:
+                print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+                return 2
             out["written_to"] = args.output
             out.pop("script")
         print(json.dumps(out, indent=2))
     else:
         if args.output:
-            print(f"wrote {len(intent.hooks)} hook(s) for '{intent.target}' to {args.output}",
-                  file=sys.stderr)
+            nhooks = len(intent.hooks)
+            print(
+                f"wrote {nhooks} hook(s) for '{intent.target}' to {args.output}",
+                file=sys.stderr,
+            )
             if findings:
                 print(_findings_table(findings), file=sys.stderr)
         else:
@@ -102,7 +144,15 @@ def _cmd_generate(args) -> int:
 
 
 def _cmd_lint(args) -> int:
-    text = _read(args.intent)
+    try:
+        text = _read(args.intent)
+    except HookcraftError as exc:
+        if args.format == "json":
+            print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+        else:
+            print(f"error: {exc}", file=sys.stderr)
+        return 2
+
     try:
         data = parse_yaml(text)
         intent = parse_intent(data)
@@ -123,7 +173,10 @@ def _cmd_lint(args) -> int:
             "findings": [f.to_dict() for f in findings],
         }, indent=2))
     else:
-        print(f"target={intent.target} platform={intent.platform} hooks={len(intent.hooks)}")
+        nhooks = len(intent.hooks)
+        print(
+            f"target={intent.target} platform={intent.platform} hooks={nhooks}"
+        )
         print(_findings_table(findings))
 
     return 1 if has_errors(findings) else 0
@@ -154,11 +207,11 @@ def build_parser() -> argparse.ArgumentParser:
                    help="output format (overrides the global --format)")
     g.set_defaults(func=_cmd_generate)
 
-    l = sub.add_parser("lint", help="validate an intent and report findings")
-    l.add_argument("intent", help="path to the YAML intent file ('-' for stdin)")
-    l.add_argument("--format", choices=["table", "json"], default=None,
-                   help="output format (overrides the global --format)")
-    l.set_defaults(func=_cmd_lint)
+    lp = sub.add_parser("lint", help="validate an intent and report findings")
+    lp.add_argument("intent", help="path to the YAML intent file ('-' for stdin)")
+    lp.add_argument("--format", choices=["table", "json"], default=None,
+                    help="output format (overrides the global --format)")
+    lp.set_defaults(func=_cmd_lint)
 
     return p
 
@@ -172,7 +225,8 @@ def main(argv=None) -> int:
     # Resolve --format: a value given after the subcommand wins; otherwise
     # fall back to the global --format (so both positions work).
     sub_fmt = getattr(args, "format", None)
-    args.format = sub_fmt if sub_fmt is not None else getattr(args, "global_format", "table")
+    global_fmt = getattr(args, "global_format", "table")
+    args.format = sub_fmt if sub_fmt is not None else global_fmt
     try:
         return args.func(args)
     except FileNotFoundError as exc:

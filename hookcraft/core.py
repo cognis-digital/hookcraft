@@ -131,7 +131,11 @@ def _parse_block(lines: list[_Line], idx: int, indent: int):
 
 def _parse_list(lines, idx, indent):
     items = []
-    while idx < len(lines) and lines[idx].indent == indent and lines[idx].text.startswith("- "):
+    while (
+        idx < len(lines)
+        and lines[idx].indent == indent
+        and lines[idx].text.startswith("- ")
+    ):
         body = lines[idx].text[2:].strip()
         ln = lines[idx]
         if ":" in body and not _looks_like_value(body):
@@ -355,8 +359,10 @@ def lint_intent(intent: Intent) -> list[Finding]:
             if not h.symbol:
                 out.append(Finding("error", where, "native_export requires 'symbol'"))
             if not h.module:
-                out.append(Finding("info", where,
-                                   "no 'module' given; symbol resolved across all modules"))
+                out.append(Finding(
+                    "info", where,
+                    "no 'module' given; symbol resolved across all modules",
+                ))
         elif h.kind == "module_init":
             if not h.module:
                 out.append(Finding("error", where, "module_init requires 'module'"))
@@ -371,11 +377,15 @@ def lint_intent(intent: Intent) -> list[Finding]:
                 out.append(Finding("warning", where,
                                    "objc_method only applies to ios/macos targets"))
             if not h.selector:
-                out.append(Finding("error", where,
-                                   "objc_method requires 'selector' e.g. '-[NSURL initWithString:]'"))
+                out.append(Finding(
+                    "error", where,
+                    "objc_method requires 'selector' e.g. '-[NSURL initWithString:]'",
+                ))
             elif not re.match(r"^[+-]\[\s*\S+\s+\S+\]$", str(h.selector)):
-                out.append(Finding("warning", where,
-                                   f"selector '{h.selector}' does not look like '-[Class sel]'"))
+                out.append(Finding(
+                    "warning", where,
+                    f"selector '{h.selector}' does not look like '-[Class sel]'",
+                ))
         elif h.kind == "java_method":
             if intent.platform not in ("android", "generic"):
                 out.append(Finding("warning", where,
@@ -405,21 +415,29 @@ def _emit_native(h: Hook) -> str:
     mod = _js(h.module) if h.module else "null"
     lines = [
         f"  // hook: {h.name} (native_export)",
-        f"  (function () {{",
+        "  (function () {",
         f"    var addr = Module.findExportByName({mod}, {sym});",
         f"    if (addr === null) {{ log('[!] export not found: ' + {sym}); return; }}",
-        f"    Interceptor.attach(addr, {{",
-        f"      onEnter: function (args) {{",
-        f"        this.t0 = Date.now();",
+        "    Interceptor.attach(addr, {",
+        "      onEnter: function (args) {",
+        "        this.t0 = Date.now();",
     ]
     if h.log_args:
         lines.append("        var dumped = [];")
-        lines.append("        for (var i = 0; i < 4; i++) { dumped.push(args[i].toString()); }")
-        lines.append(f"        emit({{ hook: {_js(h.name)}, event: 'enter', args: dumped }});")
+        lines.append(
+            "        for (var i = 0; i < 4; i++)"
+            " { dumped.push(args[i].toString()); }"
+        )
+        lines.append(
+            f"        emit({{ hook: {_js(h.name)},"
+            " event: 'enter', args: dumped }});"
+        )
     if h.backtrace:
-        lines.append("        emit({ hook: " + _js(h.name) + ", event: 'backtrace',"
-                     " stack: Thread.backtrace(this.context, Backtracer.ACCURATE)"
-                     ".map(DebugSymbol.fromAddress).map(String) });")
+        lines.append(
+            "        emit({ hook: " + _js(h.name) + ", event: 'backtrace',"
+            " stack: Thread.backtrace(this.context, Backtracer.ACCURATE)"
+            ".map(DebugSymbol.fromAddress).map(String) });"
+        )
     lines.append("      },")
     lines.append("      onLeave: function (retval) {")
     if h.log_return:
@@ -436,23 +454,34 @@ def _emit_address(h: Hook) -> str:
     addr = _js(str(h.address))
     lines = [
         f"  // hook: {h.name} (address)",
-        f"  (function () {{",
+        "  (function () {",
         f"    var addr = ptr({addr});",
-        f"    Interceptor.attach(addr, {{",
-        f"      onEnter: function (args) {{",
+        "    Interceptor.attach(addr, {",
+        "      onEnter: function (args) {",
     ]
     if h.log_args:
         lines.append("        var dumped = [];")
-        lines.append("        for (var i = 0; i < 4; i++) { dumped.push(args[i].toString()); }")
-        lines.append(f"        emit({{ hook: {_js(h.name)}, event: 'enter', args: dumped }});")
+        lines.append(
+            "        for (var i = 0; i < 4; i++)"
+            " { dumped.push(args[i].toString()); }"
+        )
+        lines.append(
+            f"        emit({{ hook: {_js(h.name)},"
+            " event: 'enter', args: dumped }});"
+        )
     if h.backtrace:
-        lines.append("        emit({ hook: " + _js(h.name) + ", event: 'backtrace',"
-                     " stack: Thread.backtrace(this.context, Backtracer.ACCURATE)"
-                     ".map(DebugSymbol.fromAddress).map(String) });")
+        lines.append(
+            "        emit({ hook: " + _js(h.name) + ", event: 'backtrace',"
+            " stack: Thread.backtrace(this.context, Backtracer.ACCURATE)"
+            ".map(DebugSymbol.fromAddress).map(String) });"
+        )
     lines.append("      },")
     lines.append("      onLeave: function (retval) {")
     if h.log_return:
-        lines.append(f"        emit({{ hook: {_js(h.name)}, event: 'leave', retval: retval.toString() }});")
+        lines.append(
+            f"        emit({{ hook: {_js(h.name)},"
+            " event: 'leave', retval: retval.toString() }});"
+        )
     lines.append("      }")
     lines.append("    });")
     lines.append(f"    log('[+] hooked address {h.address}');")
@@ -464,22 +493,29 @@ def _emit_objc(h: Hook) -> str:
     sel = _js(h.selector or "")
     lines = [
         f"  // hook: {h.name} (objc_method)",
-        f"  if (ObjC.available) {{",
+        "  if (ObjC.available) {",
         f"    var target = {sel};",
-        f"    var resolver = new ApiResolver('objc');",
-        f"    var matches = resolver.enumerateMatches(target);",
-        f"    if (matches.length === 0) {{ log('[!] no objc match: ' + target); }}",
-        f"    matches.forEach(function (m) {{",
-        f"      Interceptor.attach(m.address, {{",
-        f"        onEnter: function (args) {{",
+        "    var resolver = new ApiResolver('objc');",
+        "    var matches = resolver.enumerateMatches(target);",
+        "    if (matches.length === 0) { log('[!] no objc match: ' + target); }",
+        "    matches.forEach(function (m) {",
+        "      Interceptor.attach(m.address, {",
+        "        onEnter: function (args) {",
     ]
     if h.log_args:
-        lines.append(f"          emit({{ hook: {_js(h.name)}, event: 'enter',"
-                     " selector: m.name, receiver: new ObjC.Object(args[0]).toString() });")
+        hook_js = _js(h.name)
+        lines.append(
+            f"          emit({{ hook: {hook_js}, event: 'enter',"
+            " selector: m.name,"
+            " receiver: new ObjC.Object(args[0]).toString() });"
+        )
     lines.append("        },")
     lines.append("        onLeave: function (retval) {")
     if h.log_return:
-        lines.append(f"          emit({{ hook: {_js(h.name)}, event: 'leave', retval: retval.toString() }});")
+        lines.append(
+            f"          emit({{ hook: {_js(h.name)},"
+            " event: 'leave', retval: retval.toString() }});"
+        )
     lines.append("        }")
     lines.append("      });")
     lines.append("    });")
@@ -497,8 +533,8 @@ def _emit_java(h: Hook) -> str:
         overload_call = f".overload({args})"
     lines = [
         f"  // hook: {h.name} (java_method)",
-        f"  Java.perform(function () {{",
-        f"    try {{",
+        "  Java.perform(function () {",
+        "    try {",
         f"      var Cls = Java.use({cls});",
         f"      Cls[{method}]{overload_call}.implementation = function () {{",
     ]
@@ -515,7 +551,10 @@ def _emit_java(h: Hook) -> str:
                      "Java.use('java.lang.Exception').$new()) });")
     lines.append("        var ret = this[" + method + "].apply(this, arguments);")
     if h.log_return:
-        lines.append(f"        emit({{ hook: {_js(h.name)}, event: 'leave', retval: '' + ret }});")
+        lines.append(
+            f"        emit({{ hook: {_js(h.name)},"
+            " event: 'leave', retval: '' + ret }});"
+        )
     lines.append("        return ret;")
     lines.append("      };")
     lines.append(f"      send({{ _hookcraft: 'ready', hook: {_js(h.name)} }});")
@@ -529,13 +568,13 @@ def _emit_module_init(h: Hook) -> str:
     mod = _js(h.module or "")
     lines = [
         f"  // hook: {h.name} (module_init)",
-        f"  (function () {{",
+        "  (function () {",
         f"    var watching = {mod};",
-        f"    var done = false;",
-        f"    var existing = Process.findModuleByName(watching);",
+        "    var done = false;",
+        "    var existing = Process.findModuleByName(watching);",
         f"    if (existing) {{ emit({{ hook: {_js(h.name)}, event: 'loaded',"
         " base: existing.base.toString(), already: true }); done = true; }",
-        f"    if (!done) {{",
+        "    if (!done) {",
         f"      MODULE_OBSERVERS.push({{ name: watching, hook: {_js(h.name)} }});",
         "      log('[*] waiting for module: ' + watching);",
         "    }",
@@ -582,7 +621,8 @@ try {{
       onLeave: function () {{
         MODULE_OBSERVERS.forEach(function (o) {{
           var m = Process.findModuleByName(o.name);
-          if (m) {{ emit({{ hook: o.hook, event: 'loaded', base: m.base.toString() }}); }}
+          if (m) {{ emit({{ hook: o.hook, event: 'loaded',
+            base: m.base.toString() }}); }}
         }});
       }}
     }});
@@ -638,7 +678,9 @@ def build(yaml_text: str, *, strict: bool = True) -> tuple[str, Intent, list[Fin
     intent = parse_intent(data)
     findings = lint_intent(intent)
     if strict and has_errors(findings):
-        msgs = "; ".join(f"{f.where}: {f.message}" for f in findings if f.severity == "error")
+        msgs = "; ".join(
+            f"{f.where}: {f.message}" for f in findings if f.severity == "error"
+        )
         raise HookcraftError(f"intent has errors: {msgs}")
     script = generate_script(intent)
     return script, intent, findings
